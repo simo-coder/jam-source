@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Jam Source</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#f6f7f4;--card:#fff;--tx:#1a2a1f;--mu:#667568;--ac:#0a7d3b;--ac2:#fed100;--bd:#dde3da;--bad:#b3261e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101712;--card:#1a241d;--tx:#eef3ec;--mu:#9aab9d;--ac:#35c26b;--bd:#2c3a30}}
+:root[data-theme="dark"]{--bg:#101712;--card:#1a241d;--tx:#eef3ec;--mu:#9aab9d;--ac:#35c26b;--bd:#2c3a30}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--ac);color:#fff;padding:14px 16px;font-weight:800;font-size:20px;border-bottom:4px solid var(--ac2)}
+:root[data-theme="dark"] header,:root:not([data-theme="light"]) header{color:#06210f}
+nav{display:flex;gap:4px;padding:8px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--bd)}
+nav button{flex:1;white-space:nowrap;border:0;background:none;color:var(--mu);padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer}
+nav button.on{background:var(--ac);color:#fff}
+main{max-width:760px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+h2{margin:4px 0 12px;font-size:18px}h3{margin:0 0 4px;font-size:16px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit;margin:4px 0 8px}
+label{font-size:13px;color:var(--mu);font-weight:600}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer}
+.btn.s{background:none;color:var(--ac);border:1px solid var(--ac)}.btn.d{background:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:120px}.row>.btn{flex:none}
+.mu{color:var(--mu);font-size:13px}.tag{display:inline-block;background:var(--bg);border:1px solid var(--bd);border-radius:99px;padding:2px 10px;font-size:12px;margin:2px 4px 2px 0}
+.star{color:#e0a800;font-weight:700}.pay{color:var(--ac);font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin:8px 0}
+.grid img,.grid video{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#000}
+.grid video{aspect-ratio:auto}
+.ap{border-top:1px solid var(--bd);padding-top:10px;margin-top:10px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);overflow:auto;padding:16px;z-index:9}.ov .card{max-width:640px;margin:20px auto}
+a{color:var(--ac)}
+body{background:radial-gradient(circle at top,var(--bg),var(--bg));font-size:16px}
+header{background:linear-gradient(90deg,#0a7d3b,#064d24)!important;color:#fff!important;letter-spacing:.3px;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+nav{position:sticky;top:0;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+nav button{border-radius:99px}
+.card{border-radius:18px;box-shadow:0 2px 12px rgba(10,60,30,.07);transition:transform .15s}
+.btn{border-radius:99px;padding:10px 18px;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.btn.s{box-shadow:none}
+.btn:active{transform:scale(.97)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--ac);border-color:var(--ac)}
+input,select,textarea{border-radius:12px}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn:not(.s):not(.d),:root:not([data-theme="light"]) nav button.on{color:#06210f}}
+.hero{background:linear-gradient(135deg,#0a7d3b 0%,#064d24 100%);color:#fff;border-radius:24px;padding:36px 22px;text-align:center;margin-bottom:16px;border-bottom:6px solid #fed100;box-shadow:0 8px 24px rgba(6,77,36,.3)}
+.hero h1{margin:8px 0;font-size:28px;line-height:1.15}.hero p{margin:0 auto 20px;max-width:380px;opacity:.92}
+.wave{font-size:54px}
+.hero .btn.big{background:#fed100;color:#1a2a1f;font-size:17px;padding:14px 28px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stats div{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:12px 6px;text-align:center}
+.stats b{display:block;font-size:22px;color:var(--ac)}.stats span{font-size:12px;color:var(--mu)}
+.acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.act{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px;cursor:pointer;box-shadow:0 2px 12px rgba(10,60,30,.07)}
+.act:hover{border-color:var(--ac)}.act span{font-size:30px;display:block}.act small{display:block;color:var(--mu)}
+.step{display:flex;gap:12px;align-items:center;margin:10px 0}
+.step i{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ac2);color:#1a2a1f;font-style:normal;font-weight:800;display:grid;place-items:center}
+</style></head><body>
+<header data-a="tab" data-k="home" style="cursor:pointer">🇯🇲 Jam Source</header>
+<nav id="nav"></nav><main id="app"><p class="mu">Loading…</p></main><div id="ov"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL='https://sfxtsakjbdbntkarvcai.supabase.co', SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmeHRzYWtqYmRibnRrYXJ2Y2FpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ0MjE4MzUsImV4cCI6MjEwOTk5NzgzNX0.Z_87IAGp5NTV5Ne-V4ynJ9Jv0iypXwcRkTmN7xlKq0E'; // see SETUP.md
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const PAR=['Kingston','St. Andrew','St. Thomas','Portland','St. Mary','St. Ann','Trelawny','St. James','Hanover','Westmoreland','St. Elizabeth','Manchester','Clarendon','St. Catherine'];
+const CAT=['Cleaning','Plumbing','Electrical','Painting','Gardening','Delivery','Tutoring','Catering','Construction','Tech help','Hair & beauty','Other'];
+const S={uid:null,P:{},J:[],A:[],tab:'home',f:{par:'',q:''},open:null};
+let db,assets,dirty=false;
+const opts=(a,sel,all)=>(all?`<option value="">${all}</option>`:'')+a.map(x=>`<option ${x==sel?'selected':''}>${x}</option>`).join('');
+const nm=u=>esc(S.P[u]?.name||'New member');
+function stats(u){const d=S.J.filter(j=>j.providerId==u&&j.status=='done');const r=d.filter(j=>j.rating);return{n:d.length,avg:r.length?(r.reduce((a,j)=>a+j.rating,0)/r.length):0}}
+const stars=u=>{const s=stats(u);return `<span class="star">★ ${s.avg?s.avg.toFixed(1):'New'}</span> <span class="mu">· ${s.n} job${s.n==1?'':'s'} completed</span>`};
+const jobCard=(j,x='')=>`<div class="card"><div class="row"><h3>${esc(j.title)}</h3><span class="pay" style="text-align:right">J$${esc(j.pay)}</span></div>
+<div class="mu">📍 ${esc(j.parish)} · <span class="tag">${esc(j.cat)}</span> · by ${nm(j.clientId)}${j.toUid?` · 🎯 Direct request to ${nm(j.toUid)}`:''}${j.agreed?` · agreed J$${esc(j.agreed)}`:''}${j.status!='open'?` · <b>${j.status}</b>`:''}</div><p>${esc(j.desc)}</p>${x}</div>`;
+
+function render(){
+ if(!S.uid){$('#nav').style.display='none';$('#ov').innerHTML='';$('#app').innerHTML=vAuth();return}
+ if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){dirty=true;return}
+ dirty=false;
+ $('#nav').style.display=S.tab=='home'?'none':'flex';$('#nav').innerHTML=[['home','🏠 Home'],['find','Find Jobs'],['post','Post a Job'],['mine','My Jobs'],['prof','My Profile']].map(([k,l])=>`<button class="${S.tab==k?'on':''}" data-a="tab" data-k="${k}">${l}</button>`).join('');
+ $('#app').innerHTML=({home:vHome,find:vFind,post:vPost,mine:vMine,prof:vProf})[S.tab]();
+ $('#ov').innerHTML=S.open?`<div class="ov" data-a="close"><div class="card" data-a="stop">${vPublic(S.open)}<button class="btn s" data-a="close">Close</button></div></div>`:'';
+}
+function vHome(){const p=S.P[S.uid],has=!!p?.name,o=S.J.filter(j=>j.status=='open'&&!j.toUid).length,pr=Object.values(S.P).filter(x=>x.name).length;
+ return `<div class="hero"><div class="wave">🇯🇲</div><h1>${has?'Wah gwaan, '+esc(p.name.split(' ')[0])+'!':'Welcome to Jam Source'}</h1><p>Find side hustles and trusted help across Jamaica, all in one place.</p><button class="btn big" data-a="tab" data-k="prof">${has?'Go to my profile':'Create profile'}</button></div>
+ <div class="stats"><div><b>${o}</b><span>open jobs</span></div><div><b>${pr}</b><span>providers</span></div><div><b>14</b><span>parishes</span></div></div>
+ <div class="acts"><div class="act" data-a="tab" data-k="find"><span>🔍</span><b>Find work</b><small>Browse jobs by parish</small></div><div class="act" data-a="tab" data-k="post"><span>📝</span><b>Post a job</b><small>Hire someone you trust</small></div><div class="act" data-a="tab" data-k="mine"><span>📋</span><b>My jobs</b><small>Offers &amp; requests</small></div></div>
+ <div class="card"><h2>How it works</h2><div class="step"><i>1</i><div>Create a profile with your skills, photos and certificates.</div></div><div class="step"><i>2</i><div>Post a job or send an offer. Clients compare ratings and past jobs.</div></div><div class="step"><i>3</i><div>Agree a price, get the job done, and build your 5-star reputation.</div></div></div><p style="text-align:center"><button class="btn s" data-a="logout">Sign out</button></p>`}
+function vAuth(){return `<div class="hero"><div class="wave">🇯🇲</div><h1>Welcome to Jam Source</h1><p>Sign in or create an account to find work and hire trusted help.</p></div><div class="card"><button class="btn big" style="width:100%" data-a="google">Continue with Google</button><p class="mu" style="text-align:center">or use email</p><label>Email</label><input id="ae" type="email" autocomplete="email"><label>Password (6+ characters)</label><input id="ap" type="password" autocomplete="current-password"><div class="row"><button class="btn" data-a="signin">Sign in</button><button class="btn s" data-a="signup">Create account</button></div></div>`}
+function vFind(){
+ const q=S.f.q.toLowerCase();
+ const L=S.J.filter(j=>j.status=='open'&&!j.toUid&&j.clientId!=S.uid&&(!S.f.par||j.parish==S.f.par)&&(!q||(j.title+j.desc+j.cat).toLowerCase().includes(q))).sort((a,b)=>b.at-a.at);
+ return `<div class="card"><div class="row"><select id="fpar">${opts(PAR,S.f.par,'All parishes')}</select><input id="fq" placeholder="Search jobs…" value="${esc(S.f.q)}"><button class="btn" data-a="filter">Search</button></div></div>`+
+ (L.length?L.map(j=>{const mine=S.A.find(a=>a.id==j.id+'_'+S.uid);
+  return jobCard(j,mine?`<span class="tag">✅ You applied (J$${esc(mine.price)})</span>`:`<div class="row"><input id="p-${j.id}" type="number" placeholder="Counter offer J$ (budget J$${j.pay})"><input id="m-${j.id}" placeholder="Short message"><button class="btn" data-a="apply" data-k="${j.id}">Send offer</button></div>`)}).join(''):'<p class="mu">No open jobs match. Try another parish.</p>');
+}
+function vPost(){return `<div class="card"><h2>Post a job</h2><label>Title</label><input id="t" placeholder="e.g. Fix leaking pipe"><label>Description</label><textarea id="d" rows="3"></textarea>
+<div class="row"><div><label>Parish</label><select id="pa">${opts(PAR,S.P[S.uid]?.parish)}</select></div><div><label>Category</label><select id="c">${opts(CAT)}</select></div><div><label>Budget (J$)</label><input id="pay" type="number"></div></div>
+<label>Send to a specific service provider (optional)</label><select id="to"><option value="">Anyone — public job</option>${Object.entries(S.P).filter(([u,p])=>u!=S.uid&&p.name).map(([u,p])=>`<option value="${u}" ${u==S.hireTo?'selected':''}>${esc(p.name)} (★${stats(u).avg.toFixed(1)}, ${stats(u).n} jobs)</option>`).join('')}</select><button class="btn" data-a="post">Post job</button></div>`}
+function inc(){const r=S.J.filter(j=>j.toUid==S.uid&&j.status=='open'&&!S.A.find(a=>a.id==j.id+'_'+S.uid));
+ return '<h2>Requests for me</h2>'+(r.length?r.map(j=>jobCard(j,`<div class="row"><input id="p-${j.id}" type="number" placeholder="Counter offer J$"><input id="m-${j.id}" placeholder="Message"><button class="btn s" data-a="apply" data-k="${j.id}">Counter</button></div><div class="row" style="margin-top:6px"><button class="btn" data-a="takeit" data-k="${j.id}">Accept J$${esc(j.pay)}</button><button class="btn d" data-a="decline" data-k="${j.id}">Decline</button></div>`)).join(''):'<p class="mu">No direct requests.</p>')}
+function vMine(){
+ const mj=S.J.filter(j=>j.clientId==S.uid).sort((a,b)=>b.at-a.at);
+ const ap=S.A.filter(a=>a.uid==S.uid);
+ let h=inc()+'<h2>Jobs I posted</h2>'+(mj.length?'':'<p class="mu">Nothing yet.</p>');
+ h+=mj.map(j=>{let x='';
+  if(j.status=='open'){const as=S.A.filter(a=>a.jobId==j.id);x=`<b>${as.length} applicant${as.length==1?'':'s'}</b>`+as.map(a=>`<div class="ap"><b>${nm(a.uid)}</b> — counter offer <b>J$${esc(a.price)}</b> <span class="mu">(budget J$${esc(j.pay)})</span>${a.clientCounter?` · you countered J$${esc(a.clientCounter)}`:''}<br>${stars(a.uid)}<br><span class="mu">${esc(a.msg)}</span><div class="row" style="margin-top:6px"><button class="btn s" data-a="view" data-k="${a.uid}">View profile</button><button class="btn" data-a="accept" data-k="${j.id}|${a.uid}">Accept J$${esc(a.price)}</button></div><div class="row" style="margin-top:6px"><input id="cc-${j.id}-${a.uid}" type="number" placeholder="Counter back J$"><button class="btn s" data-a="cback" data-k="${j.id}|${a.uid}">Counter back</button></div></div>`).join('')+`<div class="ap"><button class="btn d" data-a="del" data-k="${j.id}">Delete job</button></div>`}
+  else if(j.status=='assigned')x=`<div class="ap">Assigned to <b>${nm(j.providerId)}</b> ${stars(j.providerId)}<div class="row" style="margin-top:6px"><select id="r-${j.id}">${[5,4,3,2,1].map(n=>`<option value="${n}">${n} ★</option>`).join('')}</select><button class="btn" data-a="done" data-k="${j.id}">Mark completed &amp; rate</button></div></div>`;
+  else if(j.status=='declined')x=`<div class="ap">❌ Declined by ${nm(j.toUid)}. <button class="btn d" data-a="del" data-k="${j.id}">Delete</button></div>`;
+  else x=`<div class="ap">✅ Completed by ${nm(j.providerId)} — rated <span class="star">${j.rating}★</span></div>`;
+  return jobCard(j,x)}).join('');
+ h+='<h2>My applications</h2>'+(ap.length?'':'<p class="mu">No applications yet.</p>');
+ h+=ap.map(a=>{const j=S.J.find(j=>j.id==a.jobId);if(!j)return'';const st=j.status=='open'?'⏳ Waiting':j.providerId==S.uid?'🎉 You got the job':'Not selected';const cc=j.status=='open'&&a.clientCounter?`<div class="ap">Client countered <b>J$${esc(a.clientCounter)}</b> <button class="btn" data-a="acceptcc" data-k="${j.id}">Accept J$${esc(a.clientCounter)}</button></div>`:'';return jobCard(j,`<span class="tag">${st}</span> <span class="mu">your offer J$${esc(a.price)}</span>`+cc)}).join('');
+ return h;
+}
+function vProf(){
+ const p=S.P[S.uid]||{};const ph=p.photos||[],vd=p.videos||[],ce=p.certs||[];
+ return `<div class="card"><h2>My profile</h2>${stars(S.uid)}<label>Name</label><input id="pn" value="${esc(p.name)}" placeholder="Your name"><label>Parish</label><select id="pp">${opts(PAR,p.parish)}</select>
+<label>About me</label><textarea id="pb" rows="3">${esc(p.bio)}</textarea><label>Skills (comma separated)</label><input id="ps" value="${esc((p.skills||[]).join(', '))}" placeholder="Plumbing, Welding, Tiling">
+<button class="btn" data-a="saveprof">Save profile</button></div>
+<div class="card"><h3>Certifications (PDF)</h3>${ce.map((c,i)=>`<div class="row"><a href="${esc(c.url)}" target="_blank">📄 ${esc(c.name)}</a><button class="btn s" data-a="rm" data-k="certs|${i}">Remove</button></div>`).join('')}<input type="file" id="fc" accept="application/pdf" data-up="certs"></div>
+<div class="card"><h3>Photos (${ph.length}/5)</h3><div class="grid">${ph.map((u,i)=>`<div><img src="${esc(u)}"><button class="btn s" data-a="rm" data-k="photos|${i}">Remove</button></div>`).join('')}</div>${ph.length<5?'<input type="file" accept="image/*" data-up="photos">':''}</div>
+<div class="card"><h3>Short videos (${vd.length}/2)</h3><div class="grid">${vd.map((u,i)=>`<div><video src="${esc(u)}" controls></video><button class="btn s" data-a="rm" data-k="videos|${i}">Remove</button></div>`).join('')}</div>${vd.length<2?'<input type="file" accept="video/*" data-up="videos">':''}<p class="mu" id="upmsg"></p></div>`;
+}
+function vPublic(u){const p=S.P[u]||{};
+ return `<h2>${nm(u)}</h2>${stars(u)}<div class="mu">📍 ${esc(p.parish||'Jamaica')}</div><p>${esc(p.bio)}</p>${(p.skills||[]).map(s=>`<span class="tag">${esc(s)}</span>`).join('')}
+ ${(p.certs||[]).map(c=>`<div><a href="${esc(c.url)}" target="_blank">📄 ${esc(c.name)}</a></div>`).join('')}
+ <div class="grid">${(p.photos||[]).map(x=>`<img src="${esc(x)}">`).join('')}${(p.videos||[]).map(x=>`<video src="${esc(x)}" controls></video>`).join('')}</div>${u!=S.uid?`<button class="btn" data-a="hire" data-k="${u}">Request this provider</button> `:''}`}
+
+const val=id=>document.getElementById(id)?.value?.trim()||'';
+async function saveP(patch){const p={...(S.P[S.uid]||{}),...patch};S.P[S.uid]=p;await db.doc('profiles/'+S.uid).set(p);render()}
+const A={
+ async signin(){ok(await sb.auth.signInWithPassword({email:val('ae'),password:val('ap')}))},
+ async signup(){const r=ok(await sb.auth.signUp({email:val('ae'),password:val('ap')}));if(!r.session)alert('Check your email to confirm your account, then sign in.')},
+ async google(){ok(await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}}))},
+ async logout(){await sb.auth.signOut()},
+ tab:e=>{S.tab=e.k;render()},close:()=>{S.open=null;render()},stop:()=>{},view:e=>{S.open=e.k;render()},
+ filter:()=>{S.f={par:val('fpar'),q:val('fq')};render()},
+ async post(){const t=val('t'),d=val('d'),pay=val('pay');if(!t||!pay)return alert('Add a title and budget.');
+  const id='j'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+  await db.doc('jobs/'+id).set({title:t,desc:d,parish:val('pa'),cat:val('c'),pay:+pay,clientId:S.uid,status:'open',at:Date.now(),...(val('to')?{toUid:val('to')}:{})});S.hireTo=null;S.tab='mine';render()},
+ async apply(e){const p=val('p-'+e.k);if(!p)return alert('Enter your price.');
+  await db.doc('applications/'+e.k+'_'+S.uid).set({jobId:e.k,uid:S.uid,price:+p,msg:val('m-'+e.k),at:Date.now()})},
+ async accept(e){const[j,u]=e.k.split('|');const a=S.A.find(x=>x.id==j+'_'+u);await db.doc('jobs/'+j).update({status:'assigned',providerId:u,agreed:a?.price})},
+ async cback(e){const[j,u]=e.k.split('|');const v=val('cc-'+j+'-'+u);if(!v)return alert('Enter a price.');await db.doc('applications/'+j+'_'+u).update({clientCounter:+v})},
+ async acceptcc(e){const a=S.A.find(x=>x.id==e.k+'_'+S.uid);await db.doc('jobs/'+e.k).update({status:'assigned',providerId:S.uid,agreed:a.clientCounter})},
+ async takeit(e){const j=S.J.find(x=>x.id==e.k);await db.doc('jobs/'+e.k).update({status:'assigned',providerId:S.uid,agreed:j.pay})},
+ async decline(e){await db.doc('jobs/'+e.k).update({status:'declined'})},
+ hire:e=>{S.hireTo=e.k;S.open=null;S.tab='post';render()},
+ async done(e){await db.doc('jobs/'+e.k).update({status:'done',rating:+val('r-'+e.k)})},
+ async del(e){if(confirm('Delete this job?'))await db.doc('jobs/'+e.k).delete()},
+ async saveprof(){await saveP({name:val('pn'),parish:val('pp'),bio:val('pb'),skills:val('ps').split(',').map(s=>s.trim()).filter(Boolean)})},
+ async rm(e){const[k,i]=e.k.split('|');const a=[...(S.P[S.uid]?.[k]||[])];a.splice(+i,1);await saveP({[k]:a})}
+};
+document.addEventListener('click',ev=>{const t=ev.target.closest('[data-a]');if(!t)return;if(t.dataset.a=='close'&&t.classList.contains('ov')&&ev.target!==t)return;ev.stopPropagation();A[t.dataset.a]?.({k:t.dataset.k})},false);
+document.addEventListener('focusout',()=>setTimeout(()=>{if(dirty)render()},150));
+document.addEventListener('change',async ev=>{const f=ev.target;if(!f.dataset.up)return;const file=f.files[0];if(!file)return;
+ const k=f.dataset.up,lim={certs:5,photos:5,videos:2}[k];const cur=S.P[S.uid]?.[k]||[];if(cur.length>=lim)return alert('Limit reached.');
+ if(!assets)return alert('Uploads are not available for your account here.');
+ const m=$('#upmsg');if(m)m.textContent='Uploading…';
+ try{const r=await assets.upload(file);await saveP({[k]:[...cur,k=='certs'?{name:file.name,url:r.url}:r.url]})}catch(x){alert('Upload failed: '+(x.message||x.code))}});
+
+let sb,U=[];
+const sn=k=>k=='desc'?'descr':k.replace(/[A-Z]/g,c=>'_'+c.toLowerCase());
+const cm=k=>k=='descr'?'desc':k.replace(/_([a-z])/g,(_,c)=>c.toUpperCase());
+const mapK=(o,f)=>Object.fromEntries(Object.entries(o).filter(([,v])=>v!==undefined).map(([k,v])=>[f(k),v]));
+const ok=r=>{if(r.error)throw r.error;return r.data};
+// Thin adapter so the app code talks to Supabase tables (camelCase <-> snake_case)
+const mkdb=()=>({
+ doc:p=>{const[t,id]=p.split('/');return{
+  set:async d=>ok(await sb.from(t).upsert({...mapK(d,sn),id})),
+  update:async d=>ok(await sb.from(t).update(mapK(d,sn)).eq('id',id)),
+  delete:async()=>ok(await sb.from(t).delete().eq('id',id))}},
+ collection:t=>({onSnapshot:fn=>{
+  const load=async()=>{const r=await sb.from(t).select('*');if(!r.error)fn({docs:r.data.map(x=>({id:x.id,data:()=>mapK(Object.fromEntries(Object.entries(x).filter(([k,v])=>v!==null&&k!='id')),cm)}))})};
+  load();const ch=sb.channel('rt-'+t).on('postgres_changes',{event:'*',schema:'public',table:t},load).subscribe();
+  return()=>sb.removeChannel(ch)}})});
+const mkassets=()=>({async upload(f){const path=S.uid+'/'+Date.now()+'-'+f.name.replace(/[^\w.-]/g,'_');
+ ok(await sb.storage.from('media').upload(path,f));return{url:sb.storage.from('media').getPublicUrl(path).data.publicUrl}}});
+window.addEventListener('unhandledrejection',e=>alert(e.reason?.message||'Something went wrong'));
+(async()=>{
+ if(SUPABASE_URL.startsWith('YOUR')){$('#app').innerHTML='<div class="card">Add your Supabase URL and anon key at the top of this file (see SETUP.md).</div>';return}
+ sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);db=mkdb();assets=mkassets();
+ let on=false;
+ const go=ses=>{
+  if(ses){S.uid=ses.user.id;if(!on){on=true;const sub=(c,fn)=>db.collection(c).onSnapshot(d=>{fn(d.docs.map(x=>({id:x.id,...x.data()})));render()});
+   U=[sub('profiles',a=>{S.P={};a.forEach(x=>S.P[x.id]=x)}),sub('jobs',a=>S.J=a),sub('applications',a=>S.A=a)]}}
+  else{S.uid=null;on=false;U.forEach(f=>f());U=[];S.P={};S.J=[];S.A=[];S.tab='home'}
+  render()};
+ sb.auth.onAuthStateChange((_e,ses)=>go(ses));
+ go((await sb.auth.getSession()).data.session);
+})();
+</script></body></html>
