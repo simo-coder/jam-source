@@ -51,6 +51,8 @@ input,select,textarea{border-radius:12px}
 .act:hover{border-color:var(--ac)}.act span{font-size:30px;display:block}.act small{display:block;color:var(--mu)}
 .step{display:flex;gap:12px;align-items:center;margin:10px 0}
 .step i{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ac2);color:#1a2a1f;font-style:normal;font-weight:800;display:grid;place-items:center}
+.sklist{max-height:190px;overflow-y:auto;border:1px solid var(--bd);border-radius:12px;background:var(--bg);margin:4px 0 12px}
+.sk{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--bd)}.sk:last-child{border:0}.sk:hover{background:var(--card)}
 </style></head><body>
 <header data-a="tab" data-k="home" style="cursor:pointer">🇯🇲 Jam Source</header>
 <nav id="nav"></nav><main id="app"><p class="mu">Loading…</p></main><div id="ov"></div>
@@ -61,27 +63,34 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const PAR=['Kingston','St. Andrew','St. Thomas','Portland','St. Mary','St. Ann','Trelawny','St. James','Hanover','Westmoreland','St. Elizabeth','Manchester','Clarendon','St. Catherine'];
 const CAT=['Cleaning','Plumbing','Electrical','Painting','Gardening','Delivery','Tutoring','Catering','Construction','Tech help','Hair & beauty','Other'];
-const S={uid:null,P:{},J:[],A:[],tab:'home',f:{par:'',q:''},open:null};
+const TF=['Today','Within 2 days','Within a week','Within 2 weeks','Within a month'];
+const SK=['Air conditioning repair','Appliance repair','Auto body work','Babysitting','Baking','Barbering','Car mechanic','Car wash & detailing','Carpentry','Catering','Cleaning','Computer repair','Cooking','DJ services','Delivery','Driving','Electrical wiring','Elderly care','Event planning','Farming','Fitness training','Furniture repair','Gardening','Graphic design','Hair braiding','Hair styling','Housekeeping','IT support','Laundry','Landscaping','Makeup','Masonry','Massage','Math tutoring','Moving & hauling','Music lessons','Nails','Nursing / caregiving','Painting','Pest control','Phone repair','Photography','Plumbing','Roofing','Security guard','Sewing & tailoring','Tiling','Tire repair','Tutoring','Videography','Web design','Welding','Window & grill fabrication'];
+const allSkills=()=>[...new Set([...SK,...Object.values(S.P).flatMap(p=>p.skills||[])])].sort((a,b)=>a.localeCompare(b));
+const skChips=()=>(S.skd||[]).map(s=>`<span class="tag">${esc(s)} <b data-a="rmsk" data-k="${esc(s)}" style="cursor:pointer">✕</b></span>`).join('')||'<span class="mu">No skills added yet</span>';
+function skList(){const q=S.skq.trim().toLowerCase(),sel=(S.skd||[]).map(x=>x.toLowerCase()),all=allSkills(),ex=all.some(s=>s.toLowerCase()==q);
+ return (q&&!ex?`<div class="sk" data-a="addsk" data-k="${esc(S.skq.trim())}">➕ Add "${esc(S.skq.trim())}"</div>`:'')+all.filter(s=>!sel.includes(s.toLowerCase())&&s.toLowerCase().includes(q)).map(s=>`<div class="sk" data-a="addsk" data-k="${esc(s)}">${esc(s)}</div>`).join('')||'<div class="sk mu">Nothing more to show</div>'}
+const refreshSk=()=>{if($('#skc'))$('#skc').innerHTML=skChips();if($('#skl'))$('#skl').innerHTML=skList()};
+const S={pq:{par:'',sk:'',q:''},skd:null,skq:'',pf:[],draft:{},uid:null,P:{},J:[],A:[],tab:'home',f:{par:'',q:''},open:null};
 let db,assets,dirty=false;
 const opts=(a,sel,all)=>(all?`<option value="">${all}</option>`:'')+a.map(x=>`<option ${x==sel?'selected':''}>${x}</option>`).join('');
 const nm=u=>esc(S.P[u]?.name||'New member');
 function stats(u){const d=S.J.filter(j=>j.providerId==u&&j.status=='done');const r=d.filter(j=>j.rating);return{n:d.length,avg:r.length?(r.reduce((a,j)=>a+j.rating,0)/r.length):0}}
 const stars=u=>{const s=stats(u);return `<span class="star">★ ${s.avg?s.avg.toFixed(1):'New'}</span> <span class="mu">· ${s.n} job${s.n==1?'':'s'} completed</span>`};
 const jobCard=(j,x='')=>`<div class="card"><div class="row"><h3>${esc(j.title)}</h3><span class="pay" style="text-align:right">J$${esc(j.pay)}</span></div>
-<div class="mu">📍 ${esc(j.parish)} · <span class="tag">${esc(j.cat)}</span> · by ${nm(j.clientId)}${j.toUid?` · 🎯 Direct request to ${nm(j.toUid)}`:''}${j.agreed?` · agreed J$${esc(j.agreed)}`:''}${j.status!='open'?` · <b>${j.status}</b>`:''}</div><p>${esc(j.desc)}</p>${x}</div>`;
+<div class="mu">📍 ${esc(j.parish)}${j.timeframe?` · ⏱ ${esc(j.timeframe)}`:''} · <span class="tag">${esc(j.cat)}</span> · by ${nm(j.clientId)}${j.toUid?` · 🎯 Direct request to ${nm(j.toUid)}`:''}${j.agreed?` · agreed J$${esc(j.agreed)}${j.agreedTime?' by '+esc(j.agreedTime):''}`:''}${j.status!='open'?` · <b>${j.status}</b>`:''}</div><p>${esc(j.desc)}</p>${j.photos?.length?`<div class="grid">${j.photos.map(u=>`<a href="${esc(u)}" target="_blank"><img src="${esc(u)}"></a>`).join('')}</div>`:''}${x}</div>`;
 
 function render(){
  if(!S.uid){$('#nav').style.display='none';$('#ov').innerHTML='';$('#app').innerHTML=vAuth();return}
  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){dirty=true;return}
  dirty=false;
- $('#nav').style.display=S.tab=='home'?'none':'flex';$('#nav').innerHTML=[['home','🏠 Home'],['find','Find Jobs'],['post','Post a Job'],['mine','My Jobs'],['prof','My Profile']].map(([k,l])=>`<button class="${S.tab==k?'on':''}" data-a="tab" data-k="${k}">${l}</button>`).join('');
- $('#app').innerHTML=({home:vHome,find:vFind,post:vPost,mine:vMine,prof:vProf})[S.tab]();
+ $('#nav').style.display=S.tab=='home'?'none':'flex';$('#nav').innerHTML=[['home','🏠 Home'],['find','Find Jobs'],['people','Find People'],['post','Post a Job'],['mine','My Jobs'],['prof','My Profile']].map(([k,l])=>`<button class="${S.tab==k?'on':''}" data-a="tab" data-k="${k}">${l}</button>`).join('');
+ $('#app').innerHTML=({home:vHome,find:vFind,people:vPeople,post:vPost,mine:vMine,prof:vProf})[S.tab]();
  $('#ov').innerHTML=S.open?`<div class="ov" data-a="close"><div class="card" data-a="stop">${vPublic(S.open)}<button class="btn s" data-a="close">Close</button></div></div>`:'';
 }
 function vHome(){const p=S.P[S.uid],has=!!p?.name,o=S.J.filter(j=>j.status=='open'&&!j.toUid).length,pr=Object.values(S.P).filter(x=>x.name).length;
  return `<div class="hero"><div class="wave">🇯🇲</div><h1>${has?'Wah gwaan, '+esc(p.name.split(' ')[0])+'!':'Welcome to Jam Source'}</h1><p>Find side hustles and trusted help across Jamaica, all in one place.</p><button class="btn big" data-a="tab" data-k="prof">${has?'Go to my profile':'Create profile'}</button></div>
  <div class="stats"><div><b>${o}</b><span>open jobs</span></div><div><b>${pr}</b><span>providers</span></div><div><b>14</b><span>parishes</span></div></div>
- <div class="acts"><div class="act" data-a="tab" data-k="find"><span>🔍</span><b>Find work</b><small>Browse jobs by parish</small></div><div class="act" data-a="tab" data-k="post"><span>📝</span><b>Post a job</b><small>Hire someone you trust</small></div><div class="act" data-a="tab" data-k="mine"><span>📋</span><b>My jobs</b><small>Offers &amp; requests</small></div></div>
+ <div class="acts"><div class="act" data-a="tab" data-k="find"><span>🔍</span><b>Find work</b><small>Browse jobs by parish</small></div><div class="act" data-a="tab" data-k="post"><span>📝</span><b>Post a job</b><small>Hire someone you trust</small></div><div class="act" data-a="tab" data-k="people"><span>👷</span><b>Find people</b><small>Search by skill</small></div><div class="act" data-a="tab" data-k="mine"><span>📋</span><b>My jobs</b><small>Offers &amp; requests</small></div></div>
  <div class="card"><h2>How it works</h2><div class="step"><i>1</i><div>Create a profile with your skills, photos and certificates.</div></div><div class="step"><i>2</i><div>Post a job or send an offer. Clients compare ratings and past jobs.</div></div><div class="step"><i>3</i><div>Agree a price, get the job done, and build your 5-star reputation.</div></div></div><p style="text-align:center"><button class="btn s" data-a="logout">Sign out</button></p>`}
 function vAuth(){return `<div class="hero"><div class="wave">🇯🇲</div><h1>Welcome to Jam Source</h1><p>Sign in or create an account to find work and hire trusted help.</p></div><div class="card"><button class="btn big" style="width:100%" data-a="google">Continue with Google</button><p class="mu" style="text-align:center">or use email</p><label>Email</label><input id="ae" type="email" autocomplete="email"><label>Password (6+ characters)</label><input id="ap" type="password" autocomplete="current-password"><div class="row"><button class="btn" data-a="signin">Sign in</button><button class="btn s" data-a="signup">Create account</button></div></div>`}
 function vFind(){
@@ -89,31 +98,38 @@ function vFind(){
  const L=S.J.filter(j=>j.status=='open'&&!j.toUid&&j.clientId!=S.uid&&(!S.f.par||j.parish==S.f.par)&&(!q||(j.title+j.desc+j.cat).toLowerCase().includes(q))).sort((a,b)=>b.at-a.at);
  return `<div class="card"><div class="row"><select id="fpar">${opts(PAR,S.f.par,'All parishes')}</select><input id="fq" placeholder="Search jobs…" value="${esc(S.f.q)}"><button class="btn" data-a="filter">Search</button></div></div>`+
  (L.length?L.map(j=>{const mine=S.A.find(a=>a.id==j.id+'_'+S.uid);
-  return jobCard(j,mine?`<span class="tag">✅ You applied (J$${esc(mine.price)})</span>`:`<div class="row"><input id="p-${j.id}" type="number" placeholder="Counter offer J$ (budget J$${j.pay})"><input id="m-${j.id}" placeholder="Short message"><button class="btn" data-a="apply" data-k="${j.id}">Send offer</button></div>`)}).join(''):'<p class="mu">No open jobs match. Try another parish.</p>');
+  return jobCard(j,mine?`<span class="tag">✅ You applied (J$${esc(mine.price)})</span>`:`<div class="row"><button class="btn" data-a="acceptoffer" data-k="${j.id}">Accept J$${esc(j.pay)}${j.timeframe?' · '+esc(j.timeframe):''}</button></div><p class="mu" style="margin:8px 0 0">Or make a counter offer:</p><div class="row"><input id="p-${j.id}" type="number" placeholder="Counter offer J$ (budget J$${j.pay})"><input id="m-${j.id}" placeholder="Short message"><select id="tf-${j.id}">${opts(TF,'','Same time frame as requested')}</select><button class="btn" data-a="apply" data-k="${j.id}">Send offer</button></div>`)}).join(''):'<p class="mu">No open jobs match. Try another parish.</p>');
 }
-function vPost(){return `<div class="card"><h2>Post a job</h2><label>Title</label><input id="t" placeholder="e.g. Fix leaking pipe"><label>Description</label><textarea id="d" rows="3"></textarea>
-<div class="row"><div><label>Parish</label><select id="pa">${opts(PAR,S.P[S.uid]?.parish)}</select></div><div><label>Category</label><select id="c">${opts(CAT)}</select></div><div><label>Budget (J$)</label><input id="pay" type="number"></div></div>
-<label>Send to a specific service provider (optional)</label><select id="to"><option value="">Anyone — public job</option>${Object.entries(S.P).filter(([u,p])=>u!=S.uid&&p.name).map(([u,p])=>`<option value="${u}" ${u==S.hireTo?'selected':''}>${esc(p.name)} (★${stats(u).avg.toFixed(1)}, ${stats(u).n} jobs)</option>`).join('')}</select><button class="btn" data-a="post">Post job</button></div>`}
+function vPeople(){const f=S.pq,q=f.q.toLowerCase(),sk=u=>S.P[u].skills||[];
+ const L=Object.keys(S.P).filter(u=>u!=S.uid&&S.P[u].name&&(!f.par||S.P[u].parish==f.par)&&(!f.sk||sk(u).includes(f.sk))&&(!q||(S.P[u].name+' '+sk(u).join(' ')+' '+(S.P[u].bio||'')).toLowerCase().includes(q))).sort((a,b)=>(stats(b).avg-stats(a).avg)||(stats(b).n-stats(a).n));
+ return `<div class="card"><h2>Find people</h2><div class="row"><select id="gpar">${opts(PAR,f.par,'All parishes')}</select><select id="gsk">${opts(allSkills(),f.sk,'All skills')}</select></div><div class="row"><input id="gq" placeholder="Type a name or skill…" value="${esc(f.q)}"><button class="btn" data-a="pfilter">Search</button></div></div>`+
+ (L.length?L.map(u=>`<div class="card"><h3>${nm(u)}</h3><div class="mu">📍 ${esc(S.P[u].parish||'Jamaica')}</div>${stars(u)}<div style="margin:6px 0">${sk(u).map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div><div class="row"><button class="btn s" data-a="view" data-k="${u}">View profile</button><button class="btn" data-a="hire" data-k="${u}">Request this provider</button></div></div>`).join(''):'<p class="mu">No one matches yet. Try another skill or parish.</p>')}
+function vPost(){const d=S.draft,dv=k=>esc(d[k]||''),to=d.to!==undefined?d.to:S.hireTo;
+ return `<div class="card"><h2>Post a job</h2><label>Title</label><input id="t" data-dr value="${dv('t')}" placeholder="e.g. Fix leaking pipe"><label>Description</label><textarea id="d" data-dr rows="3">${dv('d')}</textarea>
+<div class="row"><div><label>Parish</label><select id="pa" data-dr>${opts(PAR,d.pa||S.P[S.uid]?.parish)}</select></div><div><label>Category</label><select id="c" data-dr>${opts(CAT,d.c)}</select></div><div><label>Budget (J$)</label><input id="pay" data-dr type="number" value="${dv('pay')}"></div></div>
+<label>Time frame (optional)</label><select id="tf" data-dr>${opts(TF,d.tf,'Flexible / no deadline')}</select>
+<label>Photos (optional, up to 5)</label><div class="grid">${S.pf.map((f,i)=>`<div><img src="${URL.createObjectURL(f)}"><button class="btn s" data-a="rmpf" data-k="${i}">Remove</button></div>`).join('')}</div>${S.pf.length<5?'<input type="file" accept="image/*" multiple data-pf>':''}
+<label>Send to a specific service provider (optional)</label><select id="to" data-dr><option value="">Anyone — public job</option>${Object.entries(S.P).filter(([u,p])=>u!=S.uid&&p.name).map(([u,p])=>`<option value="${u}" ${u==to?'selected':''}>${esc(p.name)} (★${stats(u).avg.toFixed(1)}, ${stats(u).n} jobs)</option>`).join('')}</select><button class="btn" data-a="post">Post job</button></div>`}
 function inc(){const r=S.J.filter(j=>j.toUid==S.uid&&j.status=='open'&&!S.A.find(a=>a.id==j.id+'_'+S.uid));
- return '<h2>Requests for me</h2>'+(r.length?r.map(j=>jobCard(j,`<div class="row"><input id="p-${j.id}" type="number" placeholder="Counter offer J$"><input id="m-${j.id}" placeholder="Message"><button class="btn s" data-a="apply" data-k="${j.id}">Counter</button></div><div class="row" style="margin-top:6px"><button class="btn" data-a="takeit" data-k="${j.id}">Accept J$${esc(j.pay)}</button><button class="btn d" data-a="decline" data-k="${j.id}">Decline</button></div>`)).join(''):'<p class="mu">No direct requests.</p>')}
+ return '<h2>Requests for me</h2>'+(r.length?r.map(j=>jobCard(j,`<div class="row"><input id="p-${j.id}" type="number" placeholder="Counter offer J$"><input id="m-${j.id}" placeholder="Message"><select id="tf-${j.id}">${opts(TF,'','Same time frame as requested')}</select><button class="btn s" data-a="apply" data-k="${j.id}">Counter</button></div><div class="row" style="margin-top:6px"><button class="btn" data-a="takeit" data-k="${j.id}">Accept J$${esc(j.pay)}</button><button class="btn d" data-a="decline" data-k="${j.id}">Decline</button></div>`)).join(''):'<p class="mu">No direct requests.</p>')}
 function vMine(){
  const mj=S.J.filter(j=>j.clientId==S.uid).sort((a,b)=>b.at-a.at);
  const ap=S.A.filter(a=>a.uid==S.uid);
  let h=inc()+'<h2>Jobs I posted</h2>'+(mj.length?'':'<p class="mu">Nothing yet.</p>');
  h+=mj.map(j=>{let x='';
-  if(j.status=='open'){const as=S.A.filter(a=>a.jobId==j.id);x=`<b>${as.length} applicant${as.length==1?'':'s'}</b>`+as.map(a=>`<div class="ap"><b>${nm(a.uid)}</b> — counter offer <b>J$${esc(a.price)}</b> <span class="mu">(budget J$${esc(j.pay)})</span>${a.clientCounter?` · you countered J$${esc(a.clientCounter)}`:''}<br>${stars(a.uid)}<br><span class="mu">${esc(a.msg)}</span><div class="row" style="margin-top:6px"><button class="btn s" data-a="view" data-k="${a.uid}">View profile</button><button class="btn" data-a="accept" data-k="${j.id}|${a.uid}">Accept J$${esc(a.price)}</button></div><div class="row" style="margin-top:6px"><input id="cc-${j.id}-${a.uid}" type="number" placeholder="Counter back J$"><button class="btn s" data-a="cback" data-k="${j.id}|${a.uid}">Counter back</button></div></div>`).join('')+`<div class="ap"><button class="btn d" data-a="del" data-k="${j.id}">Delete job</button></div>`}
+  if(j.status=='open'){const as=S.A.filter(a=>a.jobId==j.id);x=`<b>${as.length} applicant${as.length==1?'':'s'}</b>`+as.map(a=>`<div class="ap"><b>${nm(a.uid)}</b> — ${a.price==j.pay&&!a.timeframe?'<span class="tag">✅ accepts your terms</span> ':'counter offer '}<b>J$${esc(a.price)}</b> <span class="mu">(budget J$${esc(j.pay)})</span>${a.timeframe?` · ⏱ <b>${esc(a.timeframe)}</b> <span class="mu">(you asked: ${esc(j.timeframe||'flexible')})</span>`:''}${a.clientCounter?` · you countered J$${esc(a.clientCounter)}${a.clientTimeframe?' / '+esc(a.clientTimeframe):''}`:''}<br>${stars(a.uid)}<br><span class="mu">${esc(a.msg)}</span><div class="row" style="margin-top:6px"><button class="btn s" data-a="view" data-k="${a.uid}">View profile</button><button class="btn" data-a="accept" data-k="${j.id}|${a.uid}">Accept J$${esc(a.price)}</button></div><div class="row" style="margin-top:6px"><input id="cc-${j.id}-${a.uid}" type="number" placeholder="Counter back J$"><select id="cct-${j.id}-${a.uid}">${opts(TF,'','Keep time frame')}</select><button class="btn s" data-a="cback" data-k="${j.id}|${a.uid}">Counter back</button></div></div>`).join('')+`<div class="ap"><button class="btn d" data-a="del" data-k="${j.id}">Delete job</button></div>`}
   else if(j.status=='assigned')x=`<div class="ap">Assigned to <b>${nm(j.providerId)}</b> ${stars(j.providerId)}<div class="row" style="margin-top:6px"><select id="r-${j.id}">${[5,4,3,2,1].map(n=>`<option value="${n}">${n} ★</option>`).join('')}</select><button class="btn" data-a="done" data-k="${j.id}">Mark completed &amp; rate</button></div></div>`;
   else if(j.status=='declined')x=`<div class="ap">❌ Declined by ${nm(j.toUid)}. <button class="btn d" data-a="del" data-k="${j.id}">Delete</button></div>`;
   else x=`<div class="ap">✅ Completed by ${nm(j.providerId)} — rated <span class="star">${j.rating}★</span></div>`;
   return jobCard(j,x)}).join('');
  h+='<h2>My applications</h2>'+(ap.length?'':'<p class="mu">No applications yet.</p>');
- h+=ap.map(a=>{const j=S.J.find(j=>j.id==a.jobId);if(!j)return'';const st=j.status=='open'?'⏳ Waiting':j.providerId==S.uid?'🎉 You got the job':'Not selected';const cc=j.status=='open'&&a.clientCounter?`<div class="ap">Client countered <b>J$${esc(a.clientCounter)}</b> <button class="btn" data-a="acceptcc" data-k="${j.id}">Accept J$${esc(a.clientCounter)}</button></div>`:'';return jobCard(j,`<span class="tag">${st}</span> <span class="mu">your offer J$${esc(a.price)}</span>`+cc)}).join('');
+ h+=ap.map(a=>{const j=S.J.find(j=>j.id==a.jobId);if(!j)return'';const st=j.status=='open'?'⏳ Waiting':j.providerId==S.uid?'🎉 You got the job':'Not selected';const cc=j.status=='open'&&a.clientCounter?`<div class="ap">Client countered <b>J$${esc(a.clientCounter)}</b>${a.clientTimeframe?' · ⏱ '+esc(a.clientTimeframe):''} <button class="btn" data-a="acceptcc" data-k="${j.id}">Accept J$${esc(a.clientCounter)}</button></div>`:'';return jobCard(j,`<span class="tag">${st}</span> <span class="mu">your offer J$${esc(a.price)}${a.timeframe?' · '+esc(a.timeframe):''}</span>`+cc)}).join('');
  return h;
 }
 function vProf(){
- const p=S.P[S.uid]||{};const ph=p.photos||[],vd=p.videos||[],ce=p.certs||[];
- return `<div class="card"><h2>My profile</h2>${stars(S.uid)}<label>Name</label><input id="pn" value="${esc(p.name)}" placeholder="Your name"><label>Parish</label><select id="pp">${opts(PAR,p.parish)}</select>
-<label>About me</label><textarea id="pb" rows="3">${esc(p.bio)}</textarea><label>Skills (comma separated)</label><input id="ps" value="${esc((p.skills||[]).join(', '))}" placeholder="Plumbing, Welding, Tiling">
+ const p=S.P[S.uid]||{},d=S.draft;if(!S.skd)S.skd=[...(p.skills||[])];const ph=p.photos||[],vd=p.videos||[],ce=p.certs||[];
+ return `<div class="card"><h2>My profile</h2>${stars(S.uid)}<label>Name</label><input id="pn" data-dr value="${esc(d.pn??p.name)}" placeholder="Your name"><label>Parish</label><select id="pp" data-dr>${opts(PAR,d.pp??p.parish)}</select>
+<label>About me</label><textarea id="pb" data-dr rows="3">${esc(d.pb??p.bio)}</textarea><label>Skills</label><div id="skc">${skChips()}</div><input id="skq" placeholder="Type to search or add your own skill…" autocomplete="off" value="${esc(S.skq)}"><div class="sklist" id="skl">${skList()}</div>
 <button class="btn" data-a="saveprof">Save profile</button></div>
 <div class="card"><h3>Certifications (PDF)</h3>${ce.map((c,i)=>`<div class="row"><a href="${esc(c.url)}" target="_blank">📄 ${esc(c.name)}</a><button class="btn s" data-a="rm" data-k="certs|${i}">Remove</button></div>`).join('')}<input type="file" id="fc" accept="application/pdf" data-up="certs"></div>
 <div class="card"><h3>Photos (${ph.length}/5)</h3><div class="grid">${ph.map((u,i)=>`<div><img src="${esc(u)}"><button class="btn s" data-a="rm" data-k="photos|${i}">Remove</button></div>`).join('')}</div>${ph.length<5?'<input type="file" accept="image/*" data-up="photos">':''}</div>
@@ -134,22 +150,34 @@ const A={
  tab:e=>{S.tab=e.k;render()},close:()=>{S.open=null;render()},stop:()=>{},view:e=>{S.open=e.k;render()},
  filter:()=>{S.f={par:val('fpar'),q:val('fq')};render()},
  async post(){const t=val('t'),d=val('d'),pay=val('pay');if(!t||!pay)return alert('Add a title and budget.');
-  const id='j'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
-  await db.doc('jobs/'+id).set({title:t,desc:d,parish:val('pa'),cat:val('c'),pay:+pay,clientId:S.uid,status:'open',at:Date.now(),...(val('to')?{toUid:val('to')}:{})});S.hireTo=null;S.tab='mine';render()},
+  const b=document.querySelector('[data-a=post]');b.disabled=true;b.textContent='Posting…';
+  try{const urls=[];for(const f of S.pf)urls.push((await assets.upload(f)).url);
+   const id='j'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+   await db.doc('jobs/'+id).set({title:t,desc:d,parish:val('pa'),cat:val('c'),pay:+pay,timeframe:val('tf')||undefined,photos:urls.length?urls:undefined,clientId:S.uid,status:'open',at:Date.now(),...(val('to')?{toUid:val('to')}:{})});
+   S.pf=[];S.draft={};S.hireTo=null;S.tab='mine';render()}catch(x){b.disabled=false;b.textContent='Post job';throw x}},
+ rmpf:e=>{S.pf.splice(+e.k,1);render()},
  async apply(e){const p=val('p-'+e.k);if(!p)return alert('Enter your price.');
-  await db.doc('applications/'+e.k+'_'+S.uid).set({jobId:e.k,uid:S.uid,price:+p,msg:val('m-'+e.k),at:Date.now()})},
- async accept(e){const[j,u]=e.k.split('|');const a=S.A.find(x=>x.id==j+'_'+u);await db.doc('jobs/'+j).update({status:'assigned',providerId:u,agreed:a?.price})},
- async cback(e){const[j,u]=e.k.split('|');const v=val('cc-'+j+'-'+u);if(!v)return alert('Enter a price.');await db.doc('applications/'+j+'_'+u).update({clientCounter:+v})},
- async acceptcc(e){const a=S.A.find(x=>x.id==e.k+'_'+S.uid);await db.doc('jobs/'+e.k).update({status:'assigned',providerId:S.uid,agreed:a.clientCounter})},
- async takeit(e){const j=S.J.find(x=>x.id==e.k);await db.doc('jobs/'+e.k).update({status:'assigned',providerId:S.uid,agreed:j.pay})},
+  await db.doc('applications/'+e.k+'_'+S.uid).set({jobId:e.k,uid:S.uid,price:+p,msg:val('m-'+e.k),timeframe:val('tf-'+e.k)||undefined,at:Date.now()})},
+ async accept(e){const[j,u]=e.k.split('|');const a=S.A.find(x=>x.id==j+'_'+u);await db.doc('jobs/'+j).update({status:'assigned',providerId:u,agreed:a?.price,agreedTime:a?.timeframe||S.J.find(x=>x.id==j)?.timeframe||null})},
+ async cback(e){const[j,u]=e.k.split('|');const a=S.A.find(x=>x.id==j+'_'+u),v=val('cc-'+j+'-'+u),t=val('cct-'+j+'-'+u);if(!v&&!t)return alert('Enter a new price and/or time frame.');await db.doc('applications/'+j+'_'+u).update({clientCounter:v?+v:a.price,clientTimeframe:t||null})},
+ async acceptcc(e){const a=S.A.find(x=>x.id==e.k+'_'+S.uid);await db.doc('jobs/'+e.k).update({status:'assigned',providerId:S.uid,agreed:a.clientCounter,agreedTime:a.clientTimeframe||a.timeframe||S.J.find(x=>x.id==e.k)?.timeframe||null})},
+ async takeit(e){const j=S.J.find(x=>x.id==e.k);await db.doc('jobs/'+e.k).update({status:'assigned',providerId:S.uid,agreed:j.pay,agreedTime:j.timeframe||null})},
  async decline(e){await db.doc('jobs/'+e.k).update({status:'declined'})},
  hire:e=>{S.hireTo=e.k;S.open=null;S.tab='post';render()},
  async done(e){await db.doc('jobs/'+e.k).update({status:'done',rating:+val('r-'+e.k)})},
  async del(e){if(confirm('Delete this job?'))await db.doc('jobs/'+e.k).delete()},
- async saveprof(){await saveP({name:val('pn'),parish:val('pp'),bio:val('pb'),skills:val('ps').split(',').map(s=>s.trim()).filter(Boolean)})},
+ async saveprof(){await saveP({name:val('pn'),parish:val('pp'),bio:val('pb'),skills:S.skd||[]});S.skd=null;['pn','pp','pb'].forEach(k=>delete S.draft[k]);render();alert('Profile saved ✅')},
+ addsk:e=>{const t=(e.k||'').trim();if(!t)return;const c=allSkills().find(s=>s.toLowerCase()==t.toLowerCase())||t[0].toUpperCase()+t.slice(1);S.skd=S.skd||[];if(!S.skd.some(s=>s.toLowerCase()==c.toLowerCase()))S.skd.push(c);S.skq='';if($('#skq'))$('#skq').value='';refreshSk()},
+ rmsk:e=>{S.skd=(S.skd||[]).filter(s=>s!=e.k);refreshSk()},
+ pfilter:()=>{S.pq={par:val('gpar'),sk:val('gsk'),q:val('gq')};render()},
+ async acceptoffer(e){const j=S.J.find(x=>x.id==e.k);await db.doc('applications/'+e.k+'_'+S.uid).set({jobId:e.k,uid:S.uid,price:j.pay,msg:val('m-'+e.k)||'I accept your offer',at:Date.now()});alert('Sent! The client will choose who to hire.')},
  async rm(e){const[k,i]=e.k.split('|');const a=[...(S.P[S.uid]?.[k]||[])];a.splice(+i,1);await saveP({[k]:a})}
 };
 document.addEventListener('click',ev=>{const t=ev.target.closest('[data-a]');if(!t)return;if(t.dataset.a=='close'&&t.classList.contains('ov')&&ev.target!==t)return;ev.stopPropagation();A[t.dataset.a]?.({k:t.dataset.k})},false);
+['input','change'].forEach(n=>document.addEventListener(n,e=>{if(e.target.hasAttribute('data-dr'))S.draft[e.target.id]=e.target.value}));
+document.addEventListener('change',e=>{const f=e.target;if(!f.hasAttribute('data-pf'))return;S.pf.push(...[...f.files].slice(0,5-S.pf.length));f.value='';f.blur();dirty=false;render()});
+document.addEventListener('input',e=>{if(e.target.id=='skq'){S.skq=e.target.value;if($('#skl'))$('#skl').innerHTML=skList()}});
+document.addEventListener('keydown',e=>{if(e.key!='Enter'||e.target.id!='skq')return;e.preventDefault();const q=S.skq.trim().toLowerCase();if(!q)return;const all=allSkills(),sel=(S.skd||[]).map(x=>x.toLowerCase());A.addsk({k:all.find(x=>x.toLowerCase()==q)||all.find(x=>!sel.includes(x.toLowerCase())&&x.toLowerCase().includes(q))||S.skq})});
 document.addEventListener('focusout',()=>setTimeout(()=>{if(dirty)render()},150));
 document.addEventListener('change',async ev=>{const f=ev.target;if(!f.dataset.up)return;const file=f.files[0];if(!file)return;
  const k=f.dataset.up,lim={certs:5,photos:5,videos:2}[k];const cur=S.P[S.uid]?.[k]||[];if(cur.length>=lim)return alert('Limit reached.');
@@ -182,7 +210,7 @@ window.addEventListener('unhandledrejection',e=>alert(e.reason?.message||'Someth
  const go=ses=>{
   if(ses){S.uid=ses.user.id;if(!on){on=true;const sub=(c,fn)=>db.collection(c).onSnapshot(d=>{fn(d.docs.map(x=>({id:x.id,...x.data()})));render()});
    U=[sub('profiles',a=>{S.P={};a.forEach(x=>S.P[x.id]=x)}),sub('jobs',a=>S.J=a),sub('applications',a=>S.A=a)]}}
-  else{S.uid=null;on=false;U.forEach(f=>f());U=[];S.P={};S.J=[];S.A=[];S.tab='home'}
+  else{S.uid=null;on=false;U.forEach(f=>f());U=[];S.P={};S.J=[];S.A=[];S.skd=null;S.tab='home'}
   render()};
  sb.auth.onAuthStateChange((_e,ses)=>go(ses));
  go((await sb.auth.getSession()).data.session);
