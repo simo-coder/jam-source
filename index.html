@@ -53,6 +53,12 @@ input,select,textarea{border-radius:12px}
 .step i{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ac2);color:#1a2a1f;font-style:normal;font-weight:800;display:grid;place-items:center}
 .sklist{max-height:190px;overflow-y:auto;border:1px solid var(--bd);border-radius:12px;background:var(--bg);margin:4px 0 12px}
 .sk{padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--bd)}.sk:last-child{border:0}.sk:hover{background:var(--card)}
+.cm{max-height:50vh;min-height:140px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:8px;background:var(--bg);border-radius:12px;margin:8px 0}
+.bub{align-self:flex-start;max-width:80%;background:var(--card);border:1px solid var(--bd);border-radius:14px 14px 14px 4px;padding:8px 12px;white-space:pre-wrap;word-break:break-word}
+.bub.me{align-self:flex-end;background:var(--ac);color:#fff;border-color:var(--ac);border-radius:14px 14px 4px 14px}
+.bub small{display:block;font-size:11px;opacity:.7;margin-top:2px}
+.bub img,.bub video{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:4px}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]) .bub.me{color:#06210f}}
 </style></head><body>
 <header data-a="tab" data-k="home" style="cursor:pointer">🇯🇲 Jam Source</header>
 <nav id="nav"></nav><main id="app"><p class="mu">Loading…</p></main><div id="ov"></div>
@@ -69,8 +75,21 @@ const allSkills=()=>[...new Set([...SK,...Object.values(S.P).flatMap(p=>p.skills
 const skChips=()=>(S.skd||[]).map(s=>`<span class="tag">${esc(s)} <b data-a="rmsk" data-k="${esc(s)}" style="cursor:pointer">✕</b></span>`).join('')||'<span class="mu">No skills added yet</span>';
 function skList(){const q=S.skq.trim().toLowerCase(),sel=(S.skd||[]).map(x=>x.toLowerCase()),all=allSkills(),ex=all.some(s=>s.toLowerCase()==q);
  return (q&&!ex?`<div class="sk" data-a="addsk" data-k="${esc(S.skq.trim())}">➕ Add "${esc(S.skq.trim())}"</div>`:'')+all.filter(s=>!sel.includes(s.toLowerCase())&&s.toLowerCase().includes(q)).map(s=>`<div class="sk" data-a="addsk" data-k="${esc(s)}">${esc(s)}</div>`).join('')||'<div class="sk mu">Nothing more to show</div>'}
+const rk=(j,p)=>'rd|'+S.uid+'|'+j+'|'+p;
+const lr=(j,p)=>{try{return +localStorage.getItem(rk(j,p))||0}catch(e){return 0}};
+const convM=(j,p)=>S.M.filter(m=>m.jobId==j&&m.providerId==p);
+const unread=(j,p)=>convM(j,p).filter(m=>m.senderId!=S.uid&&m.at>lr(j,p)).length;
+const markRead=(j,p)=>{const mx=Math.max(0,...convM(j,p).map(m=>m.at));try{localStorage.setItem(rk(j,p),mx)}catch(e){}};
+const unreadAll=()=>{let n=0;new Set(S.M.map(m=>m.jobId+'|'+m.providerId)).forEach(x=>{const[j,p]=x.split('|');n+=unread(j,p)});return n};
+const chatBtn=(j,p)=>{const n=unread(j,p);return `<button class="btn s" data-a="chat" data-k="${j}|${p}">💬 Chat${n?` (${n} new)`:''}</button>`};
+const fmt=t=>new Date(t).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const chatMsgs=()=>convM(S.chat.job,S.chat.prov).sort((a,b)=>a.at-b.at).map(m=>`<div class="bub ${m.senderId==S.uid?'me':''}">${(m.media||[]).map(a=>a.kind=='video'?`<video src="${esc(a.url)}" controls preload="metadata"></video>`:`<a href="${esc(a.url)}" target="_blank"><img src="${esc(a.url)}"></a>`).join('')}${m.body?`<div>${esc(m.body)}</div>`:''}<small>${fmt(m.at)}</small></div>`).join('')||'<p class="mu">No messages yet. Say hello 👋</p>';
+function refreshChat(){if(!S.chat)return;markRead(S.chat.job,S.chat.prov);const c=$('#cmsgs');if(c){c.innerHTML=chatMsgs();c.scrollTop=c.scrollHeight}}
+function refreshPend(){const c=$('#cpend');if(c)c.innerHTML=S.cpf.map((f,i)=>`<div>${f.type.startsWith('video')?`<video src="${URL.createObjectURL(f)}" muted></video>`:`<img src="${URL.createObjectURL(f)}">`}<button class="btn s" data-a="rmcf" data-k="${i}">Remove</button></div>`).join('')}
+function vChat(){const{job,prov}=S.chat,j=S.J.find(x=>x.id==job),other=j&&j.clientId==S.uid?prov:j?.clientId;setTimeout(()=>{refreshChat();refreshPend()});
+ return `<div class="ov" data-a="cclose"><div class="card" data-a="stop"><h3>💬 ${esc(j?.title||'Job chat')}</h3><div class="mu">Chatting with ${nm(other)}</div><div class="cm" id="cmsgs">${chatMsgs()}</div><div id="cpend" class="grid"></div><div class="row"><label class="btn s" style="cursor:pointer">📎<input type="file" data-cf accept="image/*,video/*" multiple hidden></label><input id="ci" data-dr maxlength="2000" autocomplete="off" placeholder="Type a message…" value="${esc(S.draft.ci||'')}"><button class="btn" data-a="send">Send</button></div><p style="margin:10px 0 0"><button class="btn s" data-a="cclose">Close</button></p></div></div>`}
 const refreshSk=()=>{if($('#skc'))$('#skc').innerHTML=skChips();if($('#skl'))$('#skl').innerHTML=skList()};
-const S={pq:{par:'',sk:'',q:''},skd:null,skq:'',pf:[],draft:{},uid:null,P:{},J:[],A:[],tab:'home',f:{par:'',q:''},open:null};
+const S={cpf:[],M:[],chat:null,pq:{par:'',sk:'',q:''},skd:null,skq:'',pf:[],draft:{},uid:null,P:{},J:[],A:[],tab:'home',f:{par:'',q:''},open:null};
 let db,assets,dirty=false;
 const opts=(a,sel,all)=>(all?`<option value="">${all}</option>`:'')+a.map(x=>`<option ${x==sel?'selected':''}>${x}</option>`).join('');
 const nm=u=>esc(S.P[u]?.name||'New member');
@@ -83,9 +102,9 @@ function render(){
  if(!S.uid){$('#nav').style.display='none';$('#ov').innerHTML='';$('#app').innerHTML=vAuth();return}
  if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)){dirty=true;return}
  dirty=false;
- $('#nav').style.display=S.tab=='home'?'none':'flex';$('#nav').innerHTML=[['home','🏠 Home'],['find','Find Jobs'],['people','Find People'],['post','Post a Job'],['mine','My Jobs'],['prof','My Profile']].map(([k,l])=>`<button class="${S.tab==k?'on':''}" data-a="tab" data-k="${k}">${l}</button>`).join('');
+ $('#nav').style.display=S.tab=='home'?'none':'flex';$('#nav').innerHTML=[['home','🏠 Home'],['find','Find Jobs'],['people','Find People'],['post','Post a Job'],['mine','My Jobs'],['prof','My Profile']].map(([k,l])=>`<button class="${S.tab==k?'on':''}" data-a="tab" data-k="${k}">${l}${k=='mine'&&unreadAll()?' 🔴':''}</button>`).join('');
  $('#app').innerHTML=({home:vHome,find:vFind,people:vPeople,post:vPost,mine:vMine,prof:vProf})[S.tab]();
- $('#ov').innerHTML=S.open?`<div class="ov" data-a="close"><div class="card" data-a="stop">${vPublic(S.open)}<button class="btn s" data-a="close">Close</button></div></div>`:'';
+ $('#ov').innerHTML=S.chat?vChat():S.open?`<div class="ov" data-a="close"><div class="card" data-a="stop">${vPublic(S.open)}<button class="btn s" data-a="close">Close</button></div></div>`:'';
 }
 function vHome(){const p=S.P[S.uid],has=!!p?.name,o=S.J.filter(j=>j.status=='open'&&!j.toUid).length,pr=Object.values(S.P).filter(x=>x.name).length;
  return `<div class="hero"><div class="wave">🇯🇲</div><h1>${has?'Wah gwaan, '+esc(p.name.split(' ')[0])+'!':'Welcome to Jam Source'}</h1><p>Find side hustles and trusted help across Jamaica, all in one place.</p><button class="btn big" data-a="tab" data-k="prof">${has?'Go to my profile':'Create profile'}</button></div>
@@ -111,19 +130,20 @@ function vPost(){const d=S.draft,dv=k=>esc(d[k]||''),to=d.to!==undefined?d.to:S.
 <label>Photos (optional, up to 5)</label><div class="grid">${S.pf.map((f,i)=>`<div><img src="${URL.createObjectURL(f)}"><button class="btn s" data-a="rmpf" data-k="${i}">Remove</button></div>`).join('')}</div>${S.pf.length<5?'<input type="file" accept="image/*" multiple data-pf>':''}
 <label>Send to a specific service provider (optional)</label><select id="to" data-dr><option value="">Anyone — public job</option>${Object.entries(S.P).filter(([u,p])=>u!=S.uid&&p.name).map(([u,p])=>`<option value="${u}" ${u==to?'selected':''}>${esc(p.name)} (★${stats(u).avg.toFixed(1)}, ${stats(u).n} jobs)</option>`).join('')}</select><button class="btn" data-a="post">Post job</button></div>`}
 function inc(){const r=S.J.filter(j=>j.toUid==S.uid&&j.status=='open'&&!S.A.find(a=>a.id==j.id+'_'+S.uid));
- return '<h2>Requests for me</h2>'+(r.length?r.map(j=>jobCard(j,`<div class="row"><input id="p-${j.id}" type="number" placeholder="Counter offer J$"><input id="m-${j.id}" placeholder="Message"><select id="tf-${j.id}">${opts(TF,'','Same time frame as requested')}</select><button class="btn s" data-a="apply" data-k="${j.id}">Counter</button></div><div class="row" style="margin-top:6px"><button class="btn" data-a="takeit" data-k="${j.id}">Accept J$${esc(j.pay)}</button><button class="btn d" data-a="decline" data-k="${j.id}">Decline</button></div>`)).join(''):'<p class="mu">No direct requests.</p>')}
+ return '<h2>Requests for me</h2>'+(r.length?r.map(j=>jobCard(j,`<div class="row"><input id="p-${j.id}" type="number" placeholder="Counter offer J$"><input id="m-${j.id}" placeholder="Message"><select id="tf-${j.id}">${opts(TF,'','Same time frame as requested')}</select><button class="btn s" data-a="apply" data-k="${j.id}">Counter</button></div><div class="row" style="margin-top:6px"><button class="btn" data-a="takeit" data-k="${j.id}">Accept J$${esc(j.pay)}</button><button class="btn d" data-a="decline" data-k="${j.id}">Decline</button>${chatBtn(j.id,S.uid)}</div>`)).join(''):'<p class="mu">No direct requests.</p>')}
 function vMine(){
  const mj=S.J.filter(j=>j.clientId==S.uid).sort((a,b)=>b.at-a.at);
  const ap=S.A.filter(a=>a.uid==S.uid);
  let h=inc()+'<h2>Jobs I posted</h2>'+(mj.length?'':'<p class="mu">Nothing yet.</p>');
  h+=mj.map(j=>{let x='';
-  if(j.status=='open'){const as=S.A.filter(a=>a.jobId==j.id);x=`<b>${as.length} applicant${as.length==1?'':'s'}</b>`+as.map(a=>`<div class="ap"><b>${nm(a.uid)}</b> — ${a.price==j.pay&&!a.timeframe?'<span class="tag">✅ accepts your terms</span> ':'counter offer '}<b>J$${esc(a.price)}</b> <span class="mu">(budget J$${esc(j.pay)})</span>${a.timeframe?` · ⏱ <b>${esc(a.timeframe)}</b> <span class="mu">(you asked: ${esc(j.timeframe||'flexible')})</span>`:''}${a.clientCounter?` · you countered J$${esc(a.clientCounter)}${a.clientTimeframe?' / '+esc(a.clientTimeframe):''}`:''}<br>${stars(a.uid)}<br><span class="mu">${esc(a.msg)}</span><div class="row" style="margin-top:6px"><button class="btn s" data-a="view" data-k="${a.uid}">View profile</button><button class="btn" data-a="accept" data-k="${j.id}|${a.uid}">Accept J$${esc(a.price)}</button></div><div class="row" style="margin-top:6px"><input id="cc-${j.id}-${a.uid}" type="number" placeholder="Counter back J$"><select id="cct-${j.id}-${a.uid}">${opts(TF,'','Keep time frame')}</select><button class="btn s" data-a="cback" data-k="${j.id}|${a.uid}">Counter back</button></div></div>`).join('')+`<div class="ap"><button class="btn d" data-a="del" data-k="${j.id}">Delete job</button></div>`}
-  else if(j.status=='assigned')x=`<div class="ap">Assigned to <b>${nm(j.providerId)}</b> ${stars(j.providerId)}<div class="row" style="margin-top:6px"><select id="r-${j.id}">${[5,4,3,2,1].map(n=>`<option value="${n}">${n} ★</option>`).join('')}</select><button class="btn" data-a="done" data-k="${j.id}">Mark completed &amp; rate</button></div></div>`;
+  if(j.status=='open'){const as=S.A.filter(a=>a.jobId==j.id);x=(j.toUid&&!as.some(a=>a.uid==j.toUid)?chatBtn(j.id,j.toUid)+' ':'')+`<b>${as.length} applicant${as.length==1?'':'s'}</b>`+as.map(a=>`<div class="ap"><b>${nm(a.uid)}</b> — ${a.price==j.pay&&!a.timeframe?'<span class="tag">✅ accepts your terms</span> ':'counter offer '}<b>J$${esc(a.price)}</b> <span class="mu">(budget J$${esc(j.pay)})</span>${a.timeframe?` · ⏱ <b>${esc(a.timeframe)}</b> <span class="mu">(you asked: ${esc(j.timeframe||'flexible')})</span>`:''}${a.clientCounter?` · you countered J$${esc(a.clientCounter)}${a.clientTimeframe?' / '+esc(a.clientTimeframe):''}`:''}<br>${stars(a.uid)}<br><span class="mu">${esc(a.msg)}</span><div class="row" style="margin-top:6px"><button class="btn s" data-a="view" data-k="${a.uid}">View profile</button>${chatBtn(j.id,a.uid)}<button class="btn" data-a="accept" data-k="${j.id}|${a.uid}">Accept J$${esc(a.price)}</button></div><div class="row" style="margin-top:6px"><input id="cc-${j.id}-${a.uid}" type="number" placeholder="Counter back J$"><select id="cct-${j.id}-${a.uid}">${opts(TF,'','Keep time frame')}</select><button class="btn s" data-a="cback" data-k="${j.id}|${a.uid}">Counter back</button></div></div>`).join('')+`<div class="ap"><button class="btn d" data-a="del" data-k="${j.id}">Delete job</button></div>`}
+  else if(j.status=='assigned')x=`<div class="ap">Assigned to <b>${nm(j.providerId)}</b> ${stars(j.providerId)} ${chatBtn(j.id,j.providerId)}<div class="row" style="margin-top:6px"><select id="r-${j.id}">${[5,4,3,2,1].map(n=>`<option value="${n}">${n} ★</option>`).join('')}</select><button class="btn" data-a="done" data-k="${j.id}">Mark completed &amp; rate</button></div></div>`;
   else if(j.status=='declined')x=`<div class="ap">❌ Declined by ${nm(j.toUid)}. <button class="btn d" data-a="del" data-k="${j.id}">Delete</button></div>`;
-  else x=`<div class="ap">✅ Completed by ${nm(j.providerId)} — rated <span class="star">${j.rating}★</span></div>`;
+  else x=`<div class="ap">✅ Completed by ${nm(j.providerId)} — rated <span class="star">${j.rating}★</span> ${chatBtn(j.id,j.providerId)}</div>`;
   return jobCard(j,x)}).join('');
  h+='<h2>My applications</h2>'+(ap.length?'':'<p class="mu">No applications yet.</p>');
- h+=ap.map(a=>{const j=S.J.find(j=>j.id==a.jobId);if(!j)return'';const st=j.status=='open'?'⏳ Waiting':j.providerId==S.uid?'🎉 You got the job':'Not selected';const cc=j.status=='open'&&a.clientCounter?`<div class="ap">Client countered <b>J$${esc(a.clientCounter)}</b>${a.clientTimeframe?' · ⏱ '+esc(a.clientTimeframe):''} <button class="btn" data-a="acceptcc" data-k="${j.id}">Accept J$${esc(a.clientCounter)}</button></div>`:'';return jobCard(j,`<span class="tag">${st}</span> <span class="mu">your offer J$${esc(a.price)}${a.timeframe?' · '+esc(a.timeframe):''}</span>`+cc)}).join('');
+ h+=ap.map(a=>{const j=S.J.find(j=>j.id==a.jobId);if(!j)return'';const st=j.status=='open'?'⏳ Waiting':j.providerId==S.uid?'🎉 You got the job':'Not selected';const cc=j.status=='open'&&a.clientCounter?`<div class="ap">Client countered <b>J$${esc(a.clientCounter)}</b>${a.clientTimeframe?' · ⏱ '+esc(a.clientTimeframe):''} <button class="btn" data-a="acceptcc" data-k="${j.id}">Accept J$${esc(a.clientCounter)}</button></div>`:'';return jobCard(j,`<span class="tag">${st}</span> <span class="mu">your offer J$${esc(a.price)}${a.timeframe?' · '+esc(a.timeframe):''}</span> `+chatBtn(j.id,S.uid)+cc)}).join('');
+ h+=S.J.filter(j=>j.providerId==S.uid&&!S.A.some(a=>a.id==j.id+'_'+S.uid)).map(j=>jobCard(j,`<span class="tag">${j.status=='done'?'✅ Completed':'🎉 You got the job'}</span> `+chatBtn(j.id,S.uid))).join('');
  return h;
 }
 function vProf(){
@@ -166,6 +186,17 @@ const A={
  hire:e=>{S.hireTo=e.k;S.open=null;S.tab='post';render()},
  async done(e){await db.doc('jobs/'+e.k).update({status:'done',rating:+val('r-'+e.k)})},
  async del(e){if(confirm('Delete this job?'))await db.doc('jobs/'+e.k).delete()},
+ chat:e=>{const[job,prov]=e.k.split('|');S.chat={job,prov};S.cpf=[];document.activeElement?.blur();dirty=false;render()},
+ cclose:()=>{S.chat=null;S.cpf=[];document.activeElement?.blur();dirty=false;render()},
+ async send(){const b=val('ci'),files=S.cpf,ch=S.chat;if(!ch||(!b&&!files.length))return;
+  const btn=document.querySelector('[data-a=send]'),id='m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  if(btn){btn.disabled=true;btn.textContent=files.length?'Uploading…':'Send'}
+  try{const media=[];for(const f of files)media.push({url:(await assets.upload(f)).url,kind:f.type.startsWith('video')?'video':'image'});
+   const row={jobId:ch.job,providerId:ch.prov,senderId:S.uid,body:b,media,at:Date.now()};
+   S.draft.ci='';S.cpf=[];if($('#ci'))$('#ci').value='';refreshPend();S.M.push({id,...row});refreshChat();
+   try{await db.doc('messages/'+id).set(row)}catch(x){S.M=S.M.filter(m=>m.id!=id);S.draft.ci=b;S.cpf=files;if($('#ci'))$('#ci').value=b;refreshPend();refreshChat();throw x}
+  }finally{if(btn){btn.disabled=false;btn.textContent='Send'}if($('#ci'))$('#ci').focus()}},
+ rmcf:e=>{S.cpf.splice(+e.k,1);refreshPend()},
  async saveprof(){await saveP({name:val('pn'),parish:val('pp'),bio:val('pb'),skills:S.skd||[]});S.skd=null;['pn','pp','pb'].forEach(k=>delete S.draft[k]);render();alert('Profile saved ✅')},
  addsk:e=>{const t=(e.k||'').trim();if(!t)return;const c=allSkills().find(s=>s.toLowerCase()==t.toLowerCase())||t[0].toUpperCase()+t.slice(1);S.skd=S.skd||[];if(!S.skd.some(s=>s.toLowerCase()==c.toLowerCase()))S.skd.push(c);S.skq='';if($('#skq'))$('#skq').value='';refreshSk()},
  rmsk:e=>{S.skd=(S.skd||[]).filter(s=>s!=e.k);refreshSk()},
@@ -178,6 +209,8 @@ document.addEventListener('click',ev=>{const t=ev.target.closest('[data-a]');if(
 document.addEventListener('change',e=>{const f=e.target;if(!f.hasAttribute('data-pf'))return;S.pf.push(...[...f.files].slice(0,5-S.pf.length));f.value='';f.blur();dirty=false;render()});
 document.addEventListener('input',e=>{if(e.target.id=='skq'){S.skq=e.target.value;if($('#skl'))$('#skl').innerHTML=skList()}});
 document.addEventListener('keydown',e=>{if(e.key!='Enter'||e.target.id!='skq')return;e.preventDefault();const q=S.skq.trim().toLowerCase();if(!q)return;const all=allSkills(),sel=(S.skd||[]).map(x=>x.toLowerCase());A.addsk({k:all.find(x=>x.toLowerCase()==q)||all.find(x=>!sel.includes(x.toLowerCase())&&x.toLowerCase().includes(q))||S.skq})});
+document.addEventListener('change',e=>{const f=e.target;if(!f.hasAttribute('data-cf'))return;for(const x of [...f.files]){if(S.cpf.length>=4)break;if(!/^(image|video)\//.test(x.type))continue;if(x.size>50*1024*1024){alert(x.name+' is over 50 MB.');continue}S.cpf.push(x)}f.value='';refreshPend()});
+document.addEventListener('keydown',e=>{if(e.key=='Enter'&&e.target.id=='ci'){e.preventDefault();A.send()}});
 document.addEventListener('focusout',()=>setTimeout(()=>{if(dirty)render()},150));
 document.addEventListener('change',async ev=>{const f=ev.target;if(!f.dataset.up)return;const file=f.files[0];if(!file)return;
  const k=f.dataset.up,lim={certs:5,photos:5,videos:2}[k];const cur=S.P[S.uid]?.[k]||[];if(cur.length>=lim)return alert('Limit reached.');
@@ -209,8 +242,8 @@ window.addEventListener('unhandledrejection',e=>alert(e.reason?.message||'Someth
  let on=false;
  const go=ses=>{
   if(ses){S.uid=ses.user.id;if(!on){on=true;const sub=(c,fn)=>db.collection(c).onSnapshot(d=>{fn(d.docs.map(x=>({id:x.id,...x.data()})));render()});
-   U=[sub('profiles',a=>{S.P={};a.forEach(x=>S.P[x.id]=x)}),sub('jobs',a=>S.J=a),sub('applications',a=>S.A=a)]}}
-  else{S.uid=null;on=false;U.forEach(f=>f());U=[];S.P={};S.J=[];S.A=[];S.skd=null;S.tab='home'}
+   U=[sub('profiles',a=>{S.P={};a.forEach(x=>S.P[x.id]=x)}),sub('jobs',a=>S.J=a),sub('applications',a=>S.A=a),sub('messages',a=>{S.M=a;refreshChat()})]}}
+  else{S.uid=null;on=false;U.forEach(f=>f());U=[];S.P={};S.J=[];S.A=[];S.skd=null;S.M=[];S.chat=null;S.tab='home'}
   render()};
  sb.auth.onAuthStateChange((_e,ses)=>go(ses));
  go((await sb.auth.getSession()).data.session);
